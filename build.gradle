@@ -1,0 +1,51 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+buildscript {
+    repositories {
+        google()
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.3.2'
+        classpath 'com.hujiang.aspectjx:gradle-android-plugin-aspectjx:2.0.4'
+        classpath 'org.aspectj:aspectjtools:1.8.9'
+        classpath 'org.aspectj:aspectjweaver:1.8.9'
+
+       // classpath 'com.novoda:bintray-release:0.9'
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        jcenter()
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}
+
+import org.aspectj.bridge.MessageHandler
+import org.aspectj.tools.ajc.Main
+def aop(variants) {
+    variants.all { variant ->
+        JavaCompile javaCompile = variant.javaCompile
+        String[] args;
+        javaCompile.doFirst {
+            args = ["-showWeaveInfo",
+                    "-1.8",
+                    "-inpath", javaCompile.destinationDir.toString(),
+                    "-aspectpath", javaCompile.classpath.asPath,
+                    "-d", javaCompile.destinationDir.toString(),
+                    "-classpath", path,
+                    "-bootclasspath", project.android.bootClasspath.join(File.pathSeparator)]
+        }
+
+        javaCompile.doLast {
+            new Main().run(args, new MessageHandler(false));
+        }
+    }
+}
